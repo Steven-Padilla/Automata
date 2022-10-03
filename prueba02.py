@@ -2,6 +2,8 @@ import string
 import os
 from openpyxl import Workbook
 from datetime import datetime
+import PySimpleGUI as sg
+from PySimpleGUI.PySimpleGUI import FolderBrowse, Listbox
 
 #Variables for automata
 finalState="z"
@@ -42,6 +44,104 @@ transitions=[
 #Variables for results
 acceptedFiles=[]
 notAcceptedFiles=[]
+
+def errorM():
+    layout =[
+        [
+            sg.Text('Error, folder vacio'),
+        ]
+    ]
+    window = sg.Window("Error", layout)
+    while True:
+        event, values = window.read()
+        if event == "Exit" or event == sg.WIN_CLOSED:
+            break
+def successM():
+    layout =[
+        [
+            sg.Text('Ok, Report created'),
+        ]
+    ]
+    window = sg.Window("Success", layout)
+    while True:
+        event, values = window.read()
+        if event == "Exit" or event == sg.WIN_CLOSED:
+            break
+def window():
+    file_list_column = [
+        [
+            sg.In(size=(50, 1), enable_events=True, key="-FOLDER-"),
+            sg.FolderBrowse(),
+            sg.Ok(key="CheckFolder")
+        ],
+        [
+            sg.Listbox(
+                values=[], enable_events=True, size=(50, 30),
+                key="-FILE LIST-"
+            )
+        ]
+    ]
+    # image_viewer_column = [
+        # [sg.Text("Elija la imagen que quiere visualizar:")],
+        # [sg.Text(size=(30,1), key="-TOUT-")],
+        # [sg.Image(key="-IMAGE-")],
+        # []
+    # ]
+    layout = [
+        [
+            sg.Column(file_list_column),
+            sg.VSeparator(),
+            # sg.Column(image_viewer_column)
+        ]
+    ]
+    window = sg.Window("Visualizador", layout)
+    while True:
+        event, values = window.read()
+        if event == "Exit" or event == sg.WIN_CLOSED:
+            break
+        if event == "-FOLDER-":
+            folder = values["-FOLDER-"]
+            try:
+                file_list = os.listdir(folder)
+            except:
+                file_list =[]
+
+            fnames = [
+                f
+                for f in file_list
+                if os.path.isfile(os.path.join(folder, f))
+                # and f.lower().endswith((".png",".gif"))
+            ]
+
+
+            window["-FILE LIST-"].update(fnames)
+        elif event == "-FILE LIST-":
+            try:
+                filename = os.path.join(
+                    values["-FOLDER-"], values["-FILE LIST-"][0]
+                )
+                window["-TOUT-"].update(filename)
+                window["-IMAGE-"].update(filename=filename)
+            except:
+                pass
+        elif event =="CheckFolder":
+            try:
+                file_list = os.listdir(folder)
+            except:
+                file_list =[]
+            fnames = [
+                f
+                for f in file_list
+                if os.path.isfile(os.path.join(folder, f))
+                # and f.lower().endswith((".png",".gif"))
+            ]
+            print("Checando folder")
+            return fnames
+            # getContent(fnames)
+
+            break
+    window.close()
+
 
 def validateChar(simbol):
     index=0
@@ -177,19 +277,23 @@ def generateReport():
     wb.save(filename=f'Report-{str(format)}.xlsx')
 
 def main():
-    print('Drop the folder on the current directory')
-    dir1= input('Write your folder name: ')
-    content=getContent(dir1)
+    # print('Drop the folder on the current directory')
+    # dir1= input('Write your folder name: ')
+    # content=getContent(dir1)
+    content=window()
+    if len(content)==0:
+        return errorM()
     if content.__class__!=int:
 
         for name in content:
             word=validateWord(name)
         #Comment this if you only want the style sheet
-        print(f'Files accepted: \n\t{acceptedFiles}')
-        print(f'Files NOT accepted: \n\t{notAcceptedFiles}')
+        # print(f'Files accepted: \n\t{acceptedFiles}')
+        # print(f'Files NOT accepted: \n\t{notAcceptedFiles}')
         #--------------------------------------------------#
 
         generateReport()
+        successM()
 
 
 main()
