@@ -76,7 +76,7 @@ def window():
         ],
         [
             sg.Listbox(
-                values=[], enable_events=True, size=(50, 30),
+                values=[], enable_events=False, size=(50, 30),
                 key="-FILE LIST-"
             )
         ]
